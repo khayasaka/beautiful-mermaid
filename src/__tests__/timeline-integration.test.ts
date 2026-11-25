@@ -68,3 +68,15 @@ describe('timeline – SVG rendering', () => {
     expect(svg).toContain('2025')
   })
 })
+
+describe('timeline – box colors', () => {
+  it('groups each period with its events and writes their colors as attributes', async () => {
+    const svg = await renderMermaid('timeline\n  2024 : Alpha : Beta\n  2025 : Stable')
+    expect(svg).toContain('<g class="timeline-period" data-id="period-0">')
+    expect(svg).toContain('<g class="timeline-period" data-id="period-1">')
+    const first = svg.slice(svg.indexOf('data-id="period-0"'), svg.indexOf('data-id="period-1"'))
+    expect(first.match(/fill="var\(--_node-fill\)"/g)?.length).toBe(3)
+    expect(first).toContain('stroke="var(--_node-stroke)"')
+    expect(svg).not.toMatch(/\.timeline-box\s*\{/)
+  })
+})

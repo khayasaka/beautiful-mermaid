@@ -42,3 +42,15 @@ describe('mindmap – SVG rendering', () => {
     expect(svg).toContain('var(--_')
   })
 })
+
+describe('mindmap – box colors', () => {
+  it("names each node's branch in data-id and writes its colors as attributes, but not the root's", async () => {
+    const svg = await renderMermaid('mindmap\n  root\n    A\n      A1\n    B')
+    expect(svg).toMatch(/<g class="mindmap-node" data-id="branch-0"[^>]*>[^]*?>A</)
+    expect(svg).toMatch(/<g class="mindmap-node" data-id="branch-0"[^>]*>[^]*?>A1</)
+    expect(svg).toMatch(/<g class="mindmap-node" data-id="branch-1"[^>]*>[^]*?>B</)
+    const root = svg.slice(svg.indexOf('<g class="mindmap-root"'), svg.indexOf('<g class="mindmap-node"'))
+    expect(root).not.toContain('var(--_node-fill)')
+    expect(svg.match(/class="mindmap-shape" fill="var\(--_node-fill\)"/g)?.length).toBe(3)
+  })
+})

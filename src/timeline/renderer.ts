@@ -73,7 +73,6 @@ export function renderTimelineSvg(
   parts.push(`<style>
   .timeline-axis-line { stroke: var(--_line); stroke-width: 1.5; stroke-linecap: round; }
   .timeline-connector { stroke: var(--_line); stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
-  .timeline-box { fill: var(--_node-fill); stroke: var(--_node-stroke); stroke-width: ${STROKE_WIDTHS.innerBox}; }
   .timeline-box-label { fill: var(--_text); font-weight: 600; }
   .timeline-event-label { fill: var(--_text); font-weight: 500; }
   .timeline-period-dot { fill: var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg))); stroke: var(--bg); stroke-width: 2; }
@@ -91,6 +90,12 @@ export function renderTimelineSvg(
       `font-size="18" font-weight="600" dy="${TEXT_BASELINE_SHIFT}" class="timeline-title">${escapeXml(positioned.title.text)}</text>`
     )
   }
+
+  // A period's boxes take their fill and outline as attributes, as the boxes
+  // of the other diagrams do, and are grouped with data-id, so a caller can
+  // give each period its own color
+  const boxColors = `fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="${STROKE_WIDTHS.innerBox}"`
+  let periodIndex = 0
 
   for (const section of positioned.sections) {
     // Section label — hidden for the implicit default section (periods with
@@ -123,19 +128,21 @@ export function renderTimelineSvg(
           `class="timeline-connector" marker-end="url(#timeline-arrow)"/>`
         )
 
-        parts.push(`<rect x="${r(period.x)}" y="${r(period.y)}" width="${r(period.width)}" height="${r(period.height)}" rx="0" class="timeline-box"/>`)
+        parts.push(`<g class="timeline-period" data-id="period-${periodIndex++}">`)
+        parts.push(`<rect x="${r(period.x)}" y="${r(period.y)}" width="${r(period.width)}" height="${r(period.height)}" rx="0" class="timeline-box" ${boxColors}/>`)
         parts.push(
           `<text x="${r(period.centerX)}" y="${r(period.y + period.height / 2)}" text-anchor="middle" ` +
           `font-size="${FONT_SIZES.nodeLabel}" dy="${TEXT_BASELINE_SHIFT}" class="timeline-box-label">${escapeXml(period.label)}</text>`
         )
 
         for (const ev of period.events) {
-          parts.push(`<rect x="${r(ev.x)}" y="${r(ev.y)}" width="${r(ev.width)}" height="${r(ev.height)}" rx="0" class="timeline-box"/>`)
+          parts.push(`<rect x="${r(ev.x)}" y="${r(ev.y)}" width="${r(ev.width)}" height="${r(ev.height)}" rx="0" class="timeline-box" ${boxColors}/>`)
           parts.push(
             `<text x="${r(period.centerX)}" y="${r(ev.y + ev.height / 2)}" text-anchor="middle" ` +
             `font-size="${FONT_SIZES.nodeLabel}" dy="${TEXT_BASELINE_SHIFT}" class="timeline-event-label">${escapeXml(ev.text)}</text>`
           )
         }
+        parts.push('</g>')
       }
       continue
     }
