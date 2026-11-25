@@ -80,3 +80,16 @@ describe('timeline – box colors', () => {
     expect(svg).not.toMatch(/\.timeline-box\s*\{/)
   })
 })
+
+describe('timeline – box padding', () => {
+  it('pads a box around its longest label as much as a flowchart node', async () => {
+    const { parseTimelineDiagram } = await import('../timeline/parser.ts')
+    const { layoutTimelineDiagram } = await import('../timeline/layout.ts')
+    const { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS, NODE_PADDING } = await import('../styles.ts')
+    const label = 'beautiful-mermaid bundled in the plugin'
+    const positioned = layoutTimelineDiagram(parseTimelineDiagram(['timeline', `2024 : ${label}`]))
+    const period = positioned.sections[0]!.periods[0]!
+    const text = estimateTextWidth(label, FONT_SIZES.nodeLabel, FONT_WEIGHTS.nodeLabel)
+    expect(period.width).toBeGreaterThanOrEqual(text + NODE_PADDING.horizontal * 2)
+  })
+})

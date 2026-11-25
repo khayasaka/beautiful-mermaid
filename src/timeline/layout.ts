@@ -2,7 +2,7 @@ import type { TimelineDiagram } from './types.ts'
 import { EVENT_DOT_R, PERIOD_DOT_R } from './renderer.ts'
 import type { PositionedTimeline } from './renderer.ts'
 import type { RenderOptions } from '../types.ts'
-import { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
+import { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS, NODE_PADDING } from '../styles.ts'
 
 // ============================================================================
 // Timeline layout — direction-aware
@@ -23,8 +23,12 @@ const TIMELINE = {
   periodBoxH: 40,
   /** Event box height (stacked with no gap for multiple events of one period). */
   eventBoxH: 38,
-  /** Horizontal padding inside a box around its text. */
-  boxPadX: 14,
+  /**
+   * Horizontal padding inside a box around its text: the same as a flowchart
+   * node's, so a label drawn in a font a little wider than the estimate
+   * still fits.
+   */
+  boxPadX: NODE_PADDING.horizontal,
   /** Horizontal gap between adjacent period columns. */
   colGapX: 22,
   /** Vertical gap from the period box's bottom edge down to the axis line. */
