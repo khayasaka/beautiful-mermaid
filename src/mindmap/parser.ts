@@ -31,12 +31,14 @@ export function parseMindmapDiagram(lines: string[]): Mindmap {
 
   for (const line of lines) {
     const trimmed = line.trim()
-    if (/^mindmap(?:\s|$)/i.test(trimmed)) {
+    // The header and the title come before the first node; after it, a line
+    // such as "mindmap" or "title page" is a node's text
+    if (nodes.length === 0 && headerDepth < 0 && /^mindmap(?:\s|$)/i.test(trimmed)) {
       headerDepth = line.length - line.trimStart().length
       continue
     }
 
-    const titleMatch = trimmed.match(/^title\s+(.+)$/)
+    const titleMatch = nodes.length === 0 ? trimmed.match(/^title\s+(.+)$/) : null
     if (titleMatch) {
       title = titleMatch[1]!.trim()
       continue

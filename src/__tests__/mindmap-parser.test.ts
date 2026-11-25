@@ -58,4 +58,11 @@ describe('parseMindmapDiagram', () => {
   it('throws when a node is more indented than its parent', () => {
     expect(() => parseMindmapDiagram(preprocess('mindmap\n  root\n        too deep'))).toThrow()
   })
+
+  it('reads "mindmap" and "title …" after the first node as node text', () => {
+    const m = parseMindmapDiagram(preprocess('mindmap\n  root\n    Kinds\n      mindmap\n      title page'))
+    const kinds = m.root.children[0]!
+    expect(kinds.children.map(c => c.text)).toEqual(['mindmap', 'title page'])
+    expect(m.title).toBeUndefined()
+  })
 })

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'bun:test'
 import { renderMermaid } from '../index.ts'
+import { parsePieDiagram } from '../pie/parser.ts'
+import { layoutPieDiagram } from '../pie/layout.ts'
+import { estimateTextWidth, FONT_SIZES, FONT_WEIGHTS } from '../styles.ts'
 
 const PIE = `pie showData
   title "Revenue by Product"
@@ -51,5 +54,17 @@ describe('pie – SVG rendering', () => {
     expect(svg).toContain('fill-rule="evenodd"')
     expect(svg).toContain('All')
     expect(svg).toContain('100%')
+  })
+})
+
+describe('pie – legend layout', () => {
+  it('widens the label column so a long label ends before its value', () => {
+    const lines = ['pie', '"A label much longer than the default column allows" : 25', '"B" : 75']
+    const positioned = layoutPieDiagram(parsePieDiagram(lines))
+    for (const item of positioned.legend) {
+      const labelEnd = item.labelX + estimateTextWidth(item.label, FONT_SIZES.nodeLabel, FONT_WEIGHTS.nodeLabel)
+      const valueStart = item.valueX - estimateTextWidth(String(item.value), FONT_SIZES.nodeLabel, 600)
+      expect(labelEnd).toBeLessThan(valueStart)
+    }
   })
 })
