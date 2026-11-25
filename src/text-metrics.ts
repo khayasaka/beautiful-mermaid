@@ -9,6 +9,32 @@
 // Final pixel width = sum(charWidths) * fontSize * baseRatio
 // ============================================================================
 
+import type { TextMeasureStyle, TextMeasurer } from './types.ts'
+
+// The measurer passed in RenderOptions.measureText. It is held here rather than
+// passed down because about thirty layout and render functions measure text.
+// Rendering is synchronous, so setting it for one render call cannot leak into another.
+let activeMeasurer: TextMeasurer | undefined
+
+/**
+ * Runs draw() with the given measurer in place of the built-in estimate,
+ * restoring the previous one afterwards (also when draw() throws).
+ */
+export function withTextMeasurer<T>(measurer: TextMeasurer | undefined, draw: () => T): T {
+  const previous = activeMeasurer
+  activeMeasurer = measurer
+  try {
+    return draw()
+  } finally {
+    activeMeasurer = previous
+  }
+}
+
+/** Width from the active measurer, or undefined when none is set or it keeps the estimate */
+export function measureWithActive(text: string, style: TextMeasureStyle): number | undefined {
+  return activeMeasurer?.(text, style)
+}
+
 /**
  * Narrow characters - visually thin glyphs.
  * Note: '1' is included because in proportional fonts (like Inter), it's
@@ -173,6 +199,14 @@ export function getCharWidth(char: string): number {
  * @returns Estimated width in pixels
  */
 export function measureTextWidth(text: string, fontSize: number, fontWeight: number): number {
+  // Add minimum padding to prevent truncation at text boundaries
+  // Increased from 0.1 to 0.15 for better label separation and collision prevention
+  const minPadding = fontSize * 0.15
+
+  // A measured width replaces the estimate below; the padding is kept
+  const measured = measureWithActive(text, { fontSize, fontWeight, mono: false })
+  if (measured !== undefined) return measured + minPadding
+
   // Base ratio calibrated for Inter font family
   // Heavier weights are slightly wider
   // Added +0.02 buffer to prevent edge truncation of characters like 's' at line ends
@@ -185,9 +219,6 @@ export function measureTextWidth(text: string, fontSize: number, fontWeight: num
     totalWidth += getCharWidth(char)
   }
 
-  // Add minimum padding to prevent truncation at text boundaries
-  // Increased from 0.1 to 0.15 for better label separation and collision prevention
-  const minPadding = fontSize * 0.15
   return totalWidth * fontSize * baseRatio + minPadding
 }
 

@@ -7,7 +7,7 @@
 // contains font metrics, spacing constants, and stroke widths.
 // ============================================================================
 
-import { measureTextWidth } from './text-metrics'
+import { measureTextWidth, measureWithActive } from './text-metrics'
 
 /** Average character width in px at the given font size and weight (proportional font) */
 export function estimateTextWidth(text: string, fontSize: number, fontWeight: number): number {
@@ -18,6 +18,10 @@ export function estimateTextWidth(text: string, fontSize: number, fontWeight: nu
 
 /** Average character width in px for monospace fonts (uniform glyph width) */
 export function estimateMonoTextWidth(text: string, fontSize: number): number {
+  // A measured width replaces the estimate below (which adds no padding either)
+  const measured = measureWithActive(text, { fontSize, fontWeight: 400, mono: true })
+  if (measured !== undefined) return measured
+
   // Monospace fonts have uniform character width — 0.6 of fontSize matches actual
   // glyph widths for JetBrains Mono / SF Mono / Fira Code at small sizes (11px).
   // Previous value of 0.55 underestimated widths, causing class member labels to

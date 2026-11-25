@@ -19,7 +19,7 @@
 //   const svg = renderMermaidSVG('graph TD\n  A --> B')
 // ============================================================================
 
-export type { RenderOptions, MermaidGraph, PositionedGraph } from './types.ts'
+export type { RenderOptions, MermaidGraph, PositionedGraph, TextMeasurer, TextMeasureStyle } from './types.ts'
 export type { DiagramColors, ThemeName } from './theme.ts'
 export { fromShikiTheme, THEMES, DEFAULTS } from './theme.ts'
 export { parseMermaid } from './parser.ts'
@@ -31,6 +31,7 @@ import { parseMermaid } from './parser.ts'
 import { layoutGraphSync } from './layout.ts'
 import { renderSvg } from './renderer.ts'
 import type { RenderOptions } from './types.ts'
+import { withTextMeasurer } from './text-metrics.ts'
 import type { DiagramColors } from './theme.ts'
 import { DEFAULTS } from './theme.ts'
 
@@ -128,6 +129,11 @@ export function renderMermaidSVG(
   text: string,
   options: RenderOptions = {}
 ): string {
+  return withTextMeasurer(options.measureText, () => drawSVG(text, options))
+}
+
+/** The body of renderMermaidSVG(), run while options.measureText is in place */
+function drawSVG(text: string, options: RenderOptions): string {
   // Decode XML entities that may leak from markdown parsers (e.g. rehype-raw).
   // Without this, escapeXml() double-encodes them: &lt; → &amp;lt; → literal "&lt;" in SVG.
   text = decodeXML(text)

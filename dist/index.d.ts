@@ -111,7 +111,27 @@ interface RenderOptions {
     transparent?: boolean;
     /** Enable hover tooltips on chart data points (xychart only). Default: false */
     interactive?: boolean;
+    /**
+     * Measures the width in px of one line of text in the font the SVG will be
+     * drawn with. When omitted, widths are estimated from character classes
+     * calibrated for Inter, which can be off by tens of percent for other fonts.
+     * The result replaces only the estimate: the padding that keeps glyphs off
+     * box edges is still added. Returning undefined keeps the estimate for that
+     * text. Used for the duration of one render call.
+     */
+    measureText?: TextMeasurer;
 }
+/** The style of the text passed to a TextMeasurer */
+interface TextMeasureStyle {
+    /** Font size in px */
+    fontSize: number;
+    /** Font weight (400, 500, 600, ...) */
+    fontWeight: number;
+    /** True for code-like text drawn in the monospace font (class members, ER attributes) */
+    mono: boolean;
+}
+/** Returns the width in px of one line of text (no newlines), or undefined to keep the estimate */
+type TextMeasurer = (text: string, style: TextMeasureStyle) => number | undefined;
 
 /**
  * Diagram color configuration.
@@ -309,4 +329,4 @@ declare const renderMermaidSync: typeof renderMermaidSVG;
 /** @deprecated Use `renderMermaidSVGAsync` */
 declare const renderMermaid: typeof renderMermaidSVGAsync;
 
-export { type AsciiRenderOptions, DEFAULTS, type DiagramColors, type MermaidGraph, type PositionedGraph, type RenderOptions, THEMES, type ThemeName, fromShikiTheme, parseMermaid, renderMermaid, renderMermaidASCII, renderMermaidAscii, renderMermaidSVG, renderMermaidSVGAsync, renderMermaidSync };
+export { type AsciiRenderOptions, DEFAULTS, type DiagramColors, type MermaidGraph, type PositionedGraph, type RenderOptions, THEMES, type TextMeasureStyle, type TextMeasurer, type ThemeName, fromShikiTheme, parseMermaid, renderMermaid, renderMermaidASCII, renderMermaidAscii, renderMermaidSVG, renderMermaidSVGAsync, renderMermaidSync };
