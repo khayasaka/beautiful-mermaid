@@ -25,8 +25,10 @@ export function renderMindmapAscii(
 
   const branch = config.useAscii ? '+-' : '├─'
   const lastBranch = config.useAscii ? '`-' : '└─'
-  const pipe = config.useAscii ? '|' : '│'
-  const space = '  '
+  // A child's prefix is as wide as the connector and its space ("├─ "), so
+  // children line up whether their parent is the last child or not
+  const pipe = config.useAscii ? '|  ' : '│  '
+  const space = '   '
 
   const rows: string[] = []
   if (mindmap.title) rows.push(mindmap.title)
@@ -46,7 +48,7 @@ export function renderMindmapAscii(
       const connector = isLast ? lastBranch : branch
       rows.push(`${prefix}${connector} ${colored(node.text, nodeDepth(node))}`)
     }
-    const childPrefix = isRoot ? '' : `${prefix}${isLast ? space : pipe}  `
+    const childPrefix = isRoot ? '' : `${prefix}${isLast ? space : pipe}`
     node.children.forEach((child, i) => {
       walk(child, childPrefix, i === node.children.length - 1, false)
     })

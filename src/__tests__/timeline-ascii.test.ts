@@ -22,4 +22,20 @@ describe('timeline – ASCII rendering', () => {
     const out = renderMermaidAscii(DIAGRAM, { colorMode: 'none' })
     expect(out).toContain('Releases')
   })
+
+  it('puts each event of a period on its own line, lined up under the first', () => {
+    const out = renderMermaidAscii(DIAGRAM, { colorMode: 'none' })
+    const lines = out.split('\n')
+    const alpha = lines.findIndex(l => l.includes('Alpha'))
+    expect(lines[alpha + 1]).toContain('Beta')
+    expect(lines[alpha]!.indexOf('Alpha')).toBe(lines[alpha + 1]!.indexOf('Beta'))
+    expect(lines[alpha]).not.toContain('Beta')
+  })
+
+  it('shows no heading for the implicit default section', () => {
+    const out = renderMermaidAscii('timeline\n  2024 : Alpha\n  2025 : Beta', { colorMode: 'none' })
+    expect(out).not.toContain('default')
+    expect(out).toContain('Alpha')
+    expect(out).toContain('Beta')
+  })
 })

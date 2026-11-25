@@ -26,18 +26,24 @@ export function renderTimelineAscii(
   const BL = config.useAscii ? '+' : '└'
   const BR = config.useAscii ? '+' : '┘'
 
-  const rows: string[] = []
-  if (diagram.title) rows.push(diagram.title)
+  // One box per period: the label, then each event on its own line, the
+  // later ones lined up under the first.
+  //   ┌─────────────────────┐
+  //   │ 2024 ─ Alpha        │
+  //   │        Beta         │
+  //   └─────────────────────┘
+  const boxes = diagram.sections.map(section => ({
+    // The implicit default section has no heading, as in the SVG renderer
+    heading: section.name === 'default' ? undefined : `${section.name}:`,
+    periods: section.periods.map(period => {
+      if (period.events.length === 0) return [period.label]
+      const lead = `${period.label} ${H} `
+      const indent = ' '.repeat(lead.length)
+      return period.events.map((event, i) => (i === 0 ? lead : indent) + event)
+    }),
+  }))
 
-  for (const section of diagram.sections) {
-    rows.push(`${section.name}:`)
-    for (const period of section.periods) {
-      const line = ` ${period.label} ${H} ${period.events.join(' ')}`
-      rows.push(line)
-    }
-  }
-
-  const contentW = Math.max(...rows.map(r => r.length), 1)
+  const contentW = Math.max(1, ...boxes.flatMap(b => b.periods.flat().map(r => r.length)))
   const accent = theme.accent ?? CHART_ACCENT_FALLBACK
   const bg = theme.bg
   const colored = (s: string, i: number): string => {
@@ -47,17 +53,17 @@ export function renderTimelineAscii(
   }
 
   const out: string[] = []
+  if (diagram.title) out.push(diagram.title, '')
   let colorIdx = -1
-  for (const row of rows) {
-    if (row.endsWith(':')) {
-      out.push(row)
-      continue
+  for (const box of boxes) {
+    if (box.heading) out.push(box.heading)
+    for (const rows of box.periods) {
+      colorIdx++
+      out.push(`${TL}${H.repeat(contentW + 2)}${TR}`)
+      for (const row of rows) out.push(`${V} ${colored(row.padEnd(contentW), colorIdx)} ${V}`)
+      out.push(`${BL}${H.repeat(contentW + 2)}${BR}`)
+      out.push('')
     }
-    colorIdx++
-    out.push(`${TL}${H.repeat(contentW + 2)}${TR}`)
-    out.push(`${V} ${colored(row.padEnd(contentW), colorIdx)} ${V}`)
-    out.push(`${BL}${H.repeat(contentW + 2)}${BR}`)
-    out.push('')
   }
 
   while (out.length > 0 && out[out.length - 1] === '') out.pop()

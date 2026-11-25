@@ -2,7 +2,7 @@
 node_modules/
 
 # Build output
-dist/
+# dist/ is committed on this branch, so mermaid-tint can install it from git without building
 site/
 *.tsbuildinfo
 
